@@ -138,7 +138,55 @@
 
     [self downloadMessageContent:self.messages count:count];
     [self checkMessageFailureFlag:self.messages count:count];
-    
+  
+    if (self.goodsTitle.length && self.goodsImage.length > 0) {
+        ICustomerMessage *latest = nil;
+        int i = self.messages.count;
+        for (;i > 0; i--) {
+            ICustomerMessage *msg = [self.messages objectAtIndex:i-1];
+            if (msg.type == MESSAGE_GOODS) {
+                latest = msg;
+                break;
+            }
+        }
+        
+        //最近10分钟内询盘同一商品
+        int now = (int)time(NULL);
+        if (![latest.goodsContent.title isEqualToString:self.goodsTitle] ||
+            ![latest.goodsContent.imageURL isEqualToString:self.goodsImage] ||
+            (now - latest.timestamp) > 10*60) {
+            MessageGoodsContent *content = [[MessageGoodsContent alloc] initWithGoodsTitle:self.goodsTitle
+                                                                                   content:self.goodsDescription
+                                                                                       url:self.goodsURL
+                                                                                     image:self.goodsImage];
+            
+            ICustomerMessage *goodsMsg = [[ICustomerMessage alloc] init];
+            goodsMsg.customerID = self.currentUID;
+            goodsMsg.customerAppID = self.appID;
+            goodsMsg.storeID = self.storeID;
+            goodsMsg.sellerID = self.sellerID;
+            goodsMsg.rawContent = content.raw;
+            goodsMsg.timestamp = (int)time(NULL);
+            goodsMsg.isOutgoing = YES;
+            
+            [self saveMessage:goodsMsg];
+            
+            //send message
+            CustomerMessage *im = [[CustomerMessage alloc] init];
+            im.customerAppID = goodsMsg.customerAppID;
+            im.customerID = goodsMsg.customerID;
+            im.storeID = goodsMsg.storeID;
+            im.sellerID = goodsMsg.sellerID;
+            im.msgLocalID = goodsMsg.msgLocalID;
+            im.content = goodsMsg.rawContent;
+            
+            [[IMService instance] sendCustomerMessage:im];
+            
+            [self.messages addObject:goodsMsg];
+        }
+ 
+        
+    }
     [self initTableViewData];
 }
 
@@ -229,6 +277,15 @@
         IMessage *msg = [messages objectAtIndex:i];
         [self checkMessageFailureFlag:msg];
     }
+}
+
+-(void)saveMessageAttachment:(IMessage*)msg translation:(NSString*)translation {
+    //以附件的形式存储，以免第二次查询
+    MessageAttachmentContent *att = [[MessageAttachmentContent alloc] initWithAttachment:msg.msgLocalID
+                                                                              translation:translation];
+    ICustomerMessage *attachment = [[ICustomerMessage alloc] init];
+    attachment.rawContent = att.raw;
+    [self saveMessage:attachment];
 }
 
 -(void)saveMessageAttachment:(IMessage*)msg address:(NSString*)address {
