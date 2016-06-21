@@ -284,6 +284,9 @@
     MessageAttachmentContent *att = [[MessageAttachmentContent alloc] initWithAttachment:msg.msgLocalID
                                                                               translation:translation];
     ICustomerMessage *attachment = [[ICustomerMessage alloc] init];
+    attachment.storeID = self.storeID;
+    attachment.customerID = self.currentUID;
+    attachment.customerAppID = self.appID;
     attachment.rawContent = att.raw;
     [self saveMessage:attachment];
 }
@@ -292,6 +295,9 @@
     //以附件的形式存储，以免第二次查询
     MessageAttachmentContent *att = [[MessageAttachmentContent alloc] initWithAttachment:msg.msgLocalID address:address];
     ICustomerMessage *attachment = [[ICustomerMessage alloc] init];
+    attachment.storeID = self.storeID;
+    attachment.customerID = self.currentUID;
+    attachment.customerAppID = self.appID;
     attachment.rawContent = att.raw;
     [self saveMessage:attachment];
 }
