@@ -188,7 +188,11 @@
             im.msgLocalID = goodsMsg.msgLocalID;
             im.content = goodsMsg.rawContent;
             
-            [[IMService instance] sendCustomerMessage:im];
+            BOOL r = [[IMService instance] sendCustomerMessage:im];
+            if (!r) {
+                [self markMessageFailure:goodsMsg];
+                goodsMsg.flags = msg.flags|MESSAGE_FLAG_FAILURE;
+            }
             
             [self.messages addObject:goodsMsg];
         }
