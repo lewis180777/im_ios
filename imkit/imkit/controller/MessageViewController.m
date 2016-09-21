@@ -810,9 +810,13 @@
         return;
     }
     NSLog(@"copy...");
-
     MessageTextContent *content = self.selectedMessage.textContent;
-    [[UIPasteboard generalPasteboard] setString:content.text];
+    if (self.selectedMessage.translation.length > 0) {
+        NSString *text = [content.text stringByAppendingFormat:@"      %@", self.selectedMessage.translation];
+        [[UIPasteboard generalPasteboard] setString:text];
+    } else {
+        [[UIPasteboard generalPasteboard] setString:content.text];
+    }
     [self resignFirstResponder];
 }
 
