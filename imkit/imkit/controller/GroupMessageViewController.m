@@ -33,7 +33,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    [self setNormalNavigationButtons];
+    // [self setNormalNavigationButtons];
     self.navigationItem.title = self.groupName;
     
     DraftDB *db = [DraftDB instance];
