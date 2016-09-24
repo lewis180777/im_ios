@@ -11,6 +11,8 @@
 #import "TextMessageViewController.h"
 
 
+typedef void(^rightEvenSuccess)(int64_t groupID,int64_t currentUID);
+
 //最近发出的消息
 #define LATEST_GROUP_MESSAGE       @"latest_group_message"
 
@@ -28,5 +30,7 @@
 @property(nonatomic) int64_t groupID;
 @property(nonatomic, copy) NSString *groupName;
 @property(nonatomic) BOOL disbanded;
+
+@property(nonatomic,copy) rightEvenSuccess rightEven;
 
 @end
