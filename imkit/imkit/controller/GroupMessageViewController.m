@@ -21,8 +21,6 @@
 #import "SDImageCache.h"
 
 
-#import "CreateGroupViewCtr.h"
-
 #define PAGE_COUNT 10
 
 @interface GroupMessageViewController ()<OutboxObserver, AudioDownloaderObserver>
@@ -31,40 +29,6 @@
 
 @implementation GroupMessageViewController
 
-// -(void)viewWillAppear:(BOOL)animated{
-//     [super viewWillAppear:animated];
-//     UIButton *right = [UIKitNsobject button];
-//     [right setFrame:CGRectMake(-60, 8.75, 60, 40)];
-//     //    right.backgroundColor = [UIColor re];
-//     [right setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-//     [right setTitle:[bundle localizedStringForKey:@"APP_OUT" value:nil table:@"StringFile"] forState:UIControlStateNormal];
-//     right.titleLabel.font = [UIFont systemFontOfSize:15.0f];
-//     right.titleLabel.textAlignment = NSTextAlignmentRight;
-//     //    [right setImage:[UIImage imageNamed:@"mail"] forState:UIControlStateNormal];
-//     //    [right setImageEdgeInsets:UIEdgeInsetsMake(0, 20, 0, 0)];
-//     //    [right setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
-//     [[right rac_signalForControlEvents:UIControlEventTouchUpInside] subscribeNext:^(id sender){
-//         //        [GBHudUtil showhint: @"敬请期待" delay:3.0f];
-        
-//         [self pushEven];
-        
-        
-//     }];
-    
-    
-// #ifdef Lace
-    
-//     [right setTitleEdgeInsets:UIEdgeInsetsMake(0, 20, 0, 0)];
-    
-// #elif LaceEN
-//     [right setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
-    
-// #endif
-    
-    
-//     UIBarButtonItem *rightBar = [[UIBarButtonItem alloc]initWithCustomView:right];
-//     self.navigationItem.rightBarButtonItem = rightBar;
-// }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -78,29 +42,13 @@
     
     [self addObserver];
     
-    UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"register05"] style:UIBarButtonItemStylePlain target:self action:@selector(itemAction)];
-    item.tintColor = [UIColor blackColor];
-    self.navigationItem.rightBarButtonItem = item;
     
     
     
 }
 
 
--(void)itemAction
-{
-    CreateGroupViewCtr *createViewCtr = [[CreateGroupViewCtr alloc] init];
-//    createViewCtr.myGroupDic = self.myGroupDataArray[indexPath.row];
-    if ([self.myGroupDataArray[indexPath.row][@"role"] isEqualToString:@"10"])
-    {
-        createViewCtr.num = 5;//管理员
 
-    }else
-    {
-        createViewCtr.num = 4;//非管理员
-    }
-    [self.navigationController pushViewController:createViewCtr animated:YES];
-}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -183,7 +131,7 @@
 //                                                            target:self
 //                                                            action:@selector(returnMainTableViewController)];
 //    
-//    self.navigationItem.leftBarButtonItem = item;
+//    self.navigationItem.rightBarButtonItem = item;
     
     UIButton  * left  =  [ UIButton  buttonWithType : UIButtonTypeCustom ];
     [ left  setFrame : CGRectMake ( 0 , 8.75 ,  40 ,  40 )];
@@ -193,7 +141,20 @@
     
     UIBarButtonItem  * leftBar  =  [[ UIBarButtonItem  alloc ] initWithCustomView : left ];
     self . navigationItem . leftBarButtonItem  =  leftBar ;
+    
+    UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"register05"] style:UIBarButtonItemStylePlain target:self action:@selector(itemAction)];
+    item.tintColor = [UIColor blackColor];
+    self.navigationItem.rightBarButtonItem = item;
 
+
+}
+
+- (void)itemAction{
+    if (self.rightEven) {
+        if (self.groupID && self.currentUID) {
+            self.rightEven(self.groupID,self.currentUID);
+        }
+    }
 }
 
 - (void)returnMainTableViewController {
