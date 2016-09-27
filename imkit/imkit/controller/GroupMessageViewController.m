@@ -187,12 +187,8 @@
     m.timestamp = im.timestamp;
     m.isOutgoing = (im.sender == self.currentUID);
     
-    if (self.textMode && m.type != MESSAGE_TEXT && m.type != MESSAGE_GROUP_NOTIFICATION) {
-        return;
-    }
-    
     [self downloadMessageContent:m];
-    
+    [self loadSenderInfo:m];
     [self insertMessage:m];
 }
 
@@ -230,8 +226,7 @@
     }
     msg.rawContent = notification.raw;
     
-    //update notification description
-    [self downloadMessageContent:msg];
+    [self updateNotificationDesc:msg];
     
     [self insertMessage:msg];
 }
@@ -242,31 +237,25 @@
     id<IMessageIterator> iterator =  [[GroupMessageDB instance] newMessageIterator: self.groupID];
     IMessage *msg = [iterator next];
     while (msg) {
-        if (self.textMode) {
-            if (msg.type == MESSAGE_TEXT || msg.type == MESSAGE_GROUP_NOTIFICATION) {
-                [self.messages insertObject:msg atIndex:0];
-                if (++count >= PAGE_COUNT) {
-                    break;
-                }
-            }
+        if (msg.type == MESSAGE_ATTACHMENT) {
+            MessageAttachmentContent *att = msg.attachmentContent;
+            [self.attachments setObject:att
+                                 forKey:[NSNumber numberWithInt:att.msgLocalID]];
+            
         } else {
-            if (msg.type == MESSAGE_ATTACHMENT) {
-                MessageAttachmentContent *att = msg.attachmentContent;
-                [self.attachments setObject:att
-                                     forKey:[NSNumber numberWithInt:att.msgLocalID]];
-                
-            } else {
-                msg.isOutgoing = (msg.sender == self.currentUID);
-                [self.messages insertObject:msg atIndex:0];
-                if (++count >= PAGE_COUNT) {
-                    break;
-                }
+            msg.isOutgoing = (msg.sender == self.currentUID);
+            [self.messages insertObject:msg atIndex:0];
+            if (++count >= PAGE_COUNT) {
+                break;
             }
         }
+        
         msg = [iterator next];
     }
 
     [self downloadMessageContent:self.messages count:count];
+    [self loadSenderInfo:self.messages count:count];
+    [self updateNotificationDesc:self.messages count:count];
     [self checkMessageFailureFlag:self.messages count:count];
     
     [self initTableViewData];
@@ -319,6 +308,8 @@
     }
 
     [self downloadMessageContent:self.messages count:count];
+    [self loadSenderInfo:self.messages count:count];
+    [self updateNotificationDesc:self.messages count:count];
     [self checkMessageFailureFlag:self.messages count:count];
     [self initTableViewData];
     
@@ -396,28 +387,13 @@
     }
 }
 
-
-- (void)downloadMessageContent:(IMessage*)msg {
-    [super downloadMessageContent:msg];
-    
-    if (msg.type == MESSAGE_GROUP_NOTIFICATION) {
+- (void)updateNotificationDesc:(NSArray*)messages count:(int)count {
+    for (int i = 0; i < count; i++) {
+        IMessage *msg = [messages objectAtIndex:i];
         [self updateNotificationDesc:msg];
     }
-    
-    //群组聊天
-    if (msg.sender == self.sender) {
-
-    } else if (msg.sender > 0) {
-        msg.senderInfo = [self.userDelegate getUser:msg.sender];
-        if (msg.senderInfo.name.length == 0) {
-            [self.userDelegate asyncGetUser:msg.sender cb:^(IUser *u) {
-                msg.senderInfo = u;
-            }];
-        }
-    } else {
-        //群组通知消息的sender==0
-    }
 }
+
 
 -(void)checkMessageFailureFlag:(IMessage*)msg {
     if (msg.isOutgoing) {
@@ -476,7 +452,6 @@
     [[NSNotificationCenter defaultCenter] postNotification:notification];
 }
 
-
 #pragma mark - Outbox Observer
 - (void)onAudioUploadSuccess:(IMessage*)msg URL:(NSString*)url {
     if ([self isInConversation:msg]) {
@@ -530,7 +505,7 @@
 #pragma mark - send message
 - (void)sendLocationMessage:(CLLocationCoordinate2D)location address:(NSString*)address {
     IMessage *msg = [[IMessage alloc] init];
-    
+
     msg.sender = self.sender;
     msg.receiver = self.receiver;
     
@@ -542,6 +517,8 @@
     
     msg.timestamp = (int)time(NULL);
     msg.isOutgoing = YES;
+    
+    [self loadSenderInfo:msg];
     
     [self saveMessage:msg];
     
@@ -563,12 +540,13 @@
     
     msg.sender = self.sender;
     msg.receiver = self.receiver;
-    
     MessageAudioContent *content = [[MessageAudioContent alloc] initWithAudio:[self localAudioURL] duration:second];
     
     msg.rawContent = content.raw;
     msg.timestamp = (int)time(NULL);
     msg.isOutgoing = YES;
+    
+    [self loadSenderInfo:msg];
     
     //todo 优化读文件次数
     NSData *data = [NSData dataWithContentsOfFile:path];
@@ -600,6 +578,8 @@
     msg.rawContent = content.raw;
     msg.timestamp = (int)time(NULL);
     msg.isOutgoing = YES;
+    
+    [self loadSenderInfo:msg];
     
     CGRect screenRect = [[UIScreen mainScreen] bounds];
     CGFloat screenHeight = screenRect.size.height;
@@ -633,6 +613,8 @@
     msg.rawContent = content.raw;
     msg.timestamp = (int)time(NULL);
     msg.isOutgoing = YES;
+    
+    [self loadSenderInfo:msg];
     
     [self saveMessage:msg];
     
