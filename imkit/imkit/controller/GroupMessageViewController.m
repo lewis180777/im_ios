@@ -20,6 +20,7 @@
 #import "UIImage+Resize.h"
 #import "SDImageCache.h"
 
+
 #define PAGE_COUNT 10
 
 @interface GroupMessageViewController ()<OutboxObserver, AudioDownloaderObserver>
@@ -28,10 +29,11 @@
 
 @implementation GroupMessageViewController
 
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    [self setNormalNavigationButtons];
+    // [self setNormalNavigationButtons];
     self.navigationItem.title = self.groupName;
     
     DraftDB *db = [DraftDB instance];
@@ -40,7 +42,13 @@
     
     [self addObserver];
     
+    
+    
+    
 }
+
+
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -123,7 +131,7 @@
 //                                                            target:self
 //                                                            action:@selector(returnMainTableViewController)];
 //    
-//    self.navigationItem.leftBarButtonItem = item;
+//    self.navigationItem.rightBarButtonItem = item;
     
     UIButton  * left  =  [ UIButton  buttonWithType : UIButtonTypeCustom ];
     [ left  setFrame : CGRectMake ( 0 , 8.75 ,  40 ,  40 )];
@@ -133,7 +141,20 @@
     
     UIBarButtonItem  * leftBar  =  [[ UIBarButtonItem  alloc ] initWithCustomView : left ];
     self . navigationItem . leftBarButtonItem  =  leftBar ;
+    
+    UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"register05"] style:UIBarButtonItemStylePlain target:self action:@selector(itemAction)];
+    item.tintColor = [UIColor blackColor];
+    self.navigationItem.rightBarButtonItem = item;
 
+
+}
+
+- (void)itemAction{
+    if (self.rightEven) {
+        if (self.groupID && self.currentUID) {
+            self.rightEven(self.groupID,self.currentUID);
+        }
+    }
 }
 
 - (void)returnMainTableViewController {
